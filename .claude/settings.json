@@ -1,0 +1,24 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.tool_input.command // \"\"' | grep -q 'git commit' && { PATH=$HOME/go-sdk/go/bin:$PATH go build -o /dev/null . 2>&1 || echo '{\"decision\":\"block\",\"reason\":\"Go build failed. Fix compilation errors before committing.\"}'; } || true",
+            "timeout": 60,
+            "statusMessage": "Checking Go build..."
+          }
+        ]
+      }
+    ]
+  },
+  "permissions": {
+    "allow": [
+      "Bash(go build:*)",
+      "Bash(go mod:*)",
+      "Bash(git:*)"
+    ]
+  }
+}
