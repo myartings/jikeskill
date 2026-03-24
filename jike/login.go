@@ -5,6 +5,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"time"
 
 	"github.com/myartings/jikeskill/tokens"
@@ -29,9 +30,11 @@ func (c *Client) CreateSession(ctx context.Context) (string, error) {
 
 // GenerateQRCode generates a QR code PNG image (base64 encoded) for the given session UUID.
 func GenerateQRCode(uuid string) (string, error) {
-	scanURL := fmt.Sprintf("https://web.okjike.com/scan-login?uuid=%s", uuid)
+	scanURL := fmt.Sprintf("https://www.okjike.com/account/scan?uuid=%s", uuid)
+	deepLink := fmt.Sprintf("jike://page.jk/web?url=%s&displayHeader=false&displayFooter=false",
+		url.QueryEscape(scanURL))
 
-	png, err := qrcode.Encode(scanURL, qrcode.Medium, 256)
+	png, err := qrcode.Encode(deepLink, qrcode.Medium, 256)
 	if err != nil {
 		return "", fmt.Errorf("generate qrcode: %w", err)
 	}
@@ -65,7 +68,7 @@ func (c *Client) WaitForLogin(ctx context.Context, uuid string) (*User, error) {
 
 func (c *Client) checkConfirmation(uuid string) (*User, bool, error) {
 	path := fmt.Sprintf("/sessions.wait_for_confirmation?uuid=%s", uuid)
-	body, header, statusCode, err := c.DoRaw("GET", path, nil)
+	body, _, statusCode, err := c.DoRaw("GET", path, nil)
 	if err != nil {
 		return nil, false, err
 	}
@@ -74,26 +77,28 @@ func (c *Client) checkConfirmation(uuid string) (*User, bool, error) {
 		return nil, false, fmt.Errorf("status %d", statusCode)
 	}
 
-	// Save tokens from response headers
-	accessToken := header.Get("x-jike-access-token")
-	refreshToken := header.Get("x-jike-refresh-token")
-	if accessToken == "" {
-		return nil, false, fmt.Errorf("no access token in response")
+	// Parse tokens from response body
+	var confirmResp struct {
+		Confirmed       bool   `json:"confirmed"`
+		AccessToken     string `json:"x-jike-access-token"`
+		RefreshToken    string `json:"x-jike-refresh-token"`
+	}
+	if err := json.Unmarshal(body, &confirmResp); err != nil {
+		return nil, false, fmt.Errorf("parse confirmation: %w", err)
+	}
+
+	if !confirmResp.Confirmed || confirmResp.AccessToken == "" {
+		return nil, false, fmt.Errorf("not confirmed")
 	}
 
 	if err := c.store.Save(&tokens.TokenData{
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
+		AccessToken:  confirmResp.AccessToken,
+		RefreshToken: confirmResp.RefreshToken,
 	}); err != nil {
 		return nil, false, fmt.Errorf("save tokens: %w", err)
 	}
 
-	var resp LoginConfirmResponse
-	if err := json.Unmarshal(body, &resp); err != nil {
-		return nil, true, nil // logged in but can't parse user
-	}
-
-	return &resp.User, true, nil
+	return nil, true, nil
 }
 
 // CheckLoginStatus checks if the current tokens are valid.
