@@ -153,19 +153,32 @@ func (a *AppServer) apiCreatePost(c *gin.Context) {
 }
 
 func (a *AppServer) apiGetComments(c *gin.Context) {
-	var req struct {
-		TargetID    string `json:"target_id"`
-		TargetType  string `json:"target_type"`
-		LoadMoreKey any    `json:"loadMoreKey"`
+	// Accept multiple parameter name formats (target_id, targetId, post_id, id)
+	var raw map[string]any
+	c.ShouldBindJSON(&raw)
+	targetID := ""
+	for _, key := range []string{"target_id", "targetId", "post_id", "id"} {
+		if v, ok := raw[key].(string); ok && v != "" {
+			targetID = v
+			break
+		}
 	}
-	if err := c.BindJSON(&req); err != nil {
+	if targetID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "target_id is required"})
 		return
 	}
-	if req.TargetType == "" {
-		req.TargetType = "ORIGINAL_POST"
+	targetType := "ORIGINAL_POST"
+	for _, key := range []string{"target_type", "targetType"} {
+		if v, ok := raw[key].(string); ok && v != "" {
+			targetType = v
+			break
+		}
 	}
-	resp, err := a.service.GetComments(c.Request.Context(), req.TargetID, req.TargetType, req.LoadMoreKey)
+	var loadMoreKey any
+	if v, ok := raw["loadMoreKey"]; ok {
+		loadMoreKey = v
+	}
+	resp, err := a.service.GetComments(c.Request.Context(), targetID, targetType, loadMoreKey)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
