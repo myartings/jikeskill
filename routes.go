@@ -78,7 +78,7 @@ func (a *AppServer) apiGetFollowingFeeds(c *gin.Context) {
 	var req struct {
 		LoadMoreKey any `json:"loadMoreKey"`
 	}
-	c.BindJSON(&req)
+	c.ShouldBindJSON(&req)
 	resp, err := a.service.GetFollowingFeeds(c.Request.Context(), req.LoadMoreKey)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -91,7 +91,7 @@ func (a *AppServer) apiGetRecommendFeeds(c *gin.Context) {
 	var req struct {
 		LoadMoreKey any `json:"loadMoreKey"`
 	}
-	c.BindJSON(&req)
+	c.ShouldBindJSON(&req)
 	resp, err := a.service.GetRecommendFeeds(c.Request.Context(), req.LoadMoreKey)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
@@ -209,7 +209,7 @@ func (a *AppServer) apiGetUserPosts(c *gin.Context) {
 	var req struct {
 		LoadMoreKey any `json:"loadMoreKey"`
 	}
-	c.BindJSON(&req)
+	c.ShouldBindJSON(&req)
 	resp, err := a.service.GetUserPosts(c.Request.Context(), username, req.LoadMoreKey)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

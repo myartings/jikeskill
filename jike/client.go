@@ -48,7 +48,9 @@ func (c *Client) Do(method, path string, body any) ([]byte, http.Header, error) 
 			return nil, nil, err
 		}
 	}
-	if statusCode >= 400 {
+	// Jike API sometimes returns 400 with valid data (e.g., feeds).
+	// Only treat 401+ as errors, and even then return the body for inspection.
+	if statusCode >= 500 {
 		return nil, nil, fmt.Errorf("API error %d: %s", statusCode, string(respBody))
 	}
 	return respBody, respHeader, nil
