@@ -60,8 +60,9 @@ def cmd_status():
 
 
 def cmd_qrcode():
-    # Directly call Jike API to create session (bypass Go server for QR generation)
+    # Directly call Jike API (bypass Go server entirely for login)
     import urllib.parse
+    import urllib.request
     try:
         import qrcode as qrlib
     except ImportError:
@@ -69,14 +70,21 @@ def cmd_qrcode():
         subprocess.check_call([sys.executable, "-m", "pip", "install", "--break-system-packages", "-q", "qrcode", "pillow"])
         import qrcode as qrlib
 
-    # Create session via Jike API directly
-    session_resp = api("POST", "/api/v1/login/qrcode")
-    if "error" in session_resp:
-        print(f"错误: {session_resp['error']}")
-        return
-    uuid = session_resp["uuid"]
+    # Create session directly via Jike API
+    jike_api = "https://api.ruguoapp.com"
+    req = urllib.request.Request(
+        f"{jike_api}/sessions.create",
+        headers={"Origin": "https://web.okjike.com", "Content-Type": "application/json"},
+        method="POST",
+    )
+    with urllib.request.urlopen(req, timeout=10) as resp:
+        uuid = json.loads(resp.read()).get("uuid", "")
 
-    # Generate QR code using Python library (Go library has compatibility issues with Jike app)
+    if not uuid:
+        print("错误: 无法创建登录会话")
+        return
+
+    # Generate QR code using Python library
     scan_url = f"https://www.okjike.com/account/scan?uuid={uuid}"
     deep_link = f"jike://page.jk/web?url={urllib.parse.quote(scan_url, safe='')}&displayHeader=false&displayFooter=false"
 
@@ -88,7 +96,6 @@ def cmd_qrcode():
     qr_path = "/tmp/jike-qr.png"
     img.save(qr_path)
 
-    # Also save base64 for programmatic use
     import io
     buf = io.BytesIO()
     img.save(buf, format="PNG")
@@ -102,21 +109,41 @@ def cmd_qrcode():
 
 
 def cmd_wait(uuid):
+    import time
+    import os
     print("等待扫码确认（最长 180 秒）...")
-    # Use longer timeout for wait
-    url = BASE_URL + "/api/v1/login/wait"
-    headers = {"Content-Type": "application/json"}
-    body = json.dumps({"uuid": uuid}).encode()
-    req = urllib.request.Request(url, data=body, headers=headers, method="POST")
-    try:
-        with urllib.request.urlopen(req, timeout=200) as resp:
-            r = json.loads(resp.read())
-            if r.get("user"):
-                print(f"登录成功! 欢迎, {r['user'].get('screenName', '')}")
-            else:
-                print("登录成功!")
-    except Exception as e:
-        print(f"登录失败: {e}")
+    jike_api = "https://api.ruguoapp.com"
+    token_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "tokens.json")
+
+    deadline = time.time() + 180
+    while time.time() < deadline:
+        try:
+            req = urllib.request.Request(
+                f"{jike_api}/sessions.wait_for_confirmation?uuid={uuid}",
+                headers={"Origin": "https://web.okjike.com", "Accept": "application/json"},
+            )
+            with urllib.request.urlopen(req, timeout=10) as resp:
+                data = json.loads(resp.read())
+                access_token = data.get("x-jike-access-token", "")
+                refresh_token = data.get("x-jike-refresh-token", "")
+                if data.get("confirmed") and access_token:
+                    # Save tokens to file (for both Go server and future CLI use)
+                    tokens = {"access_token": access_token, "refresh_token": refresh_token}
+                    with open(token_path, "w") as f:
+                        json.dump(tokens, f, indent=2)
+                    print(f"登录成功! Token 已保存到 {token_path}")
+                    return
+        except urllib.error.HTTPError as e:
+            if e.code == 400:
+                pass  # Still waiting
+            elif e.code == 404:
+                print("会话已过期，请重新获取二维码")
+                return
+        except Exception:
+            pass
+        time.sleep(2)
+
+    print("登录超时（180 秒），请重试")
 
 
 def cmd_following():
