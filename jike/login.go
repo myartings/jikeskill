@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"net/url"
 	"time"
 
 	"github.com/myartings/jikeskill/tokens"
@@ -31,10 +30,8 @@ func (c *Client) CreateSession(ctx context.Context) (string, error) {
 // GenerateQRCode generates a QR code PNG image (base64 encoded) for the given session UUID.
 func GenerateQRCode(uuid string) (string, error) {
 	scanURL := fmt.Sprintf("https://web.okjike.com/scan-login?uuid=%s", uuid)
-	deepLink := fmt.Sprintf("jike://page.jk/web?url=%s&displayHeader=false&displayFooter=false",
-		url.QueryEscape(scanURL))
 
-	png, err := qrcode.Encode(deepLink, qrcode.Medium, 256)
+	png, err := qrcode.Encode(scanURL, qrcode.Medium, 256)
 	if err != nil {
 		return "", fmt.Errorf("generate qrcode: %w", err)
 	}
