@@ -4,22 +4,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"strings"
 )
 
-// isUUID checks if the input looks like a UUID (contains dashes and uppercase hex).
-func isUUID(s string) bool {
-	return len(s) == 36 && strings.Count(s, "-") == 4
-}
-
-// GetUserProfile gets a user's profile by username or user ID (UUID).
+// GetUserProfile gets a user's profile by username.
+// Note: Jike usernames can be UUID-formatted strings (e.g., 27BF807A-FA4D-4B01-...).
+// Always use the "username" parameter, not "id".
 func (c *Client) GetUserProfile(ctx context.Context, username string) (*User, error) {
-	var path string
-	if isUUID(username) {
-		path = fmt.Sprintf("/1.0/users/profile?id=%s", username)
-	} else {
-		path = fmt.Sprintf("/1.0/users/profile?username=%s", username)
-	}
+	path := fmt.Sprintf("/1.0/users/profile?username=%s", username)
 	body, _, err := c.Do("GET", path, nil)
 	if err != nil {
 		return nil, fmt.Errorf("get user profile: %w", err)
@@ -34,13 +25,11 @@ func (c *Client) GetUserProfile(ctx context.Context, username string) (*User, er
 	return &resp.User, nil
 }
 
-// GetUserPosts gets posts by a specific user (by username or user ID).
+// GetUserPosts gets posts by a specific user.
+// Note: Jike usernames can be UUID-formatted strings. Always use "username" field.
 func (c *Client) GetUserPosts(ctx context.Context, username string, loadMoreKey any) (*FeedResponse, error) {
-	reqBody := map[string]any{}
-	if isUUID(username) {
-		reqBody["id"] = username
-	} else {
-		reqBody["username"] = username
+	reqBody := map[string]any{
+		"username": username,
 	}
 	if loadMoreKey != nil {
 		reqBody["loadMoreKey"] = loadMoreKey

@@ -282,7 +282,11 @@ def cmd_user_posts(username):
     if "error" in r:
         print(f"错误: {r['error']}")
         return
-    for p in r.get("data", []):
+    data = r.get("data") or []
+    if not data:
+        print("该用户没有公开的帖子，或需要登录后查看")
+        return
+    for p in data:
         print(f"[{p.get('createdAt', '')}] {p.get('content', '')[:100]}")
         print(f"  ID: {p.get('id', '')}  👍{p.get('likeCount', 0)} 💬{p.get('commentCount', 0)}")
         print()
