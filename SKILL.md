@@ -66,15 +66,17 @@ python3 ~/.openclaw/skills/jike/scripts/jike_client.py comments <post_id>
 
 ### 用户
 
+支持三种输入格式：username、即刻短链接（`https://okjk.co/xxx`）、裸短码（如 `rAgUmv`），会自动解析。
+
 ```shell
-# 查看用户资料（支持 username 或即刻链接）
-python3 ~/.openclaw/skills/jike/scripts/jike_client.py user <username 或 URL>
+# 查看用户资料
+python3 ~/.openclaw/skills/jike/scripts/jike_client.py user <username/URL/短码>
 
-# 查看用户发布的帖子（支持 username 或即刻链接）
-python3 ~/.openclaw/skills/jike/scripts/jike_client.py user-posts <username 或 URL>
+# 查看用户发布的帖子
+python3 ~/.openclaw/skills/jike/scripts/jike_client.py user-posts <username/URL/短码>
 
-# 例：通过即刻短链接查看用户
-python3 ~/.openclaw/skills/jike/scripts/jike_client.py user https://okjk.co/rAgUmv
+# 示例
+python3 ~/.openclaw/skills/jike/scripts/jike_client.py user rAgUmv
 python3 ~/.openclaw/skills/jike/scripts/jike_client.py user-posts https://okjk.co/rAgUmv
 ```
 

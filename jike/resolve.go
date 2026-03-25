@@ -8,7 +8,29 @@ import (
 
 // ResolveShortURL resolves a Jike short URL (e.g., https://okjk.co/xxx) to the final URL
 // and extracts the username. Returns the username found in the redirect chain.
+// Also accepts bare short codes like "rAgUmv" (auto-prefixed with https://okjk.co/).
 func ResolveShortURL(rawURL string) (username string, err error) {
+	// Handle bare short codes (4-10 alphanumeric, mixed case)
+	if len(rawURL) >= 4 && len(rawURL) <= 10 && !strings.Contains(rawURL, "/") && !strings.Contains(rawURL, ".") {
+		hasUpper, hasLower := false, false
+		allAlnum := true
+		for _, c := range rawURL {
+			if c >= 'A' && c <= 'Z' {
+				hasUpper = true
+			} else if c >= 'a' && c <= 'z' {
+				hasLower = true
+			} else if c < '0' || c > '9' {
+				allAlnum = false
+			}
+		}
+		if allAlnum && hasUpper && hasLower {
+			rawURL = "https://okjk.co/" + rawURL
+		}
+	}
+	// Add https:// if missing
+	if !strings.Contains(rawURL, "://") {
+		rawURL = "https://" + rawURL
+	}
 	client := &http.Client{
 		CheckRedirect: func(req *http.Request, via []*http.Request) error {
 			return http.ErrUseLastResponse // don't follow redirects automatically

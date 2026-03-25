@@ -20,13 +20,14 @@ Usage:
     python jike_client.py unfollow <username> # Unfollow user
 """
 
+import os
 import sys
 import json
 import base64
 import urllib.request
 import urllib.error
 
-BASE_URL = "http://localhost:8080"
+BASE_URL = os.environ.get("JIKE_API_URL", "http://localhost:8080")
 
 
 def api(method, path, data=None):
@@ -212,10 +213,17 @@ def cmd_comments(post_id):
 def resolve_username(input_str):
     """Resolve a Jike short URL or profile URL to a username.
 
-    Supports: https://okjk.co/xxx, https://web.okjike.com/u/xxx, plain username.
+    Supports: https://okjk.co/xxx, https://web.okjike.com/u/xxx, okjk.co/xxx, bare short codes, plain username.
     """
-    if "://" not in input_str and "okjk.co" not in input_str:
+    # If it looks like a bare short code (5-10 alphanumeric chars, mixed case), treat as okjk.co link
+    import re
+    if re.match(r'^[A-Za-z0-9]{4,10}$', input_str) and any(c.isupper() for c in input_str) and any(c.islower() for c in input_str):
+        input_str = f"https://okjk.co/{input_str}"
+    elif "://" not in input_str and "okjk.co" not in input_str and "okjike.com" not in input_str:
         return input_str
+    # Add https:// if missing
+    if "://" not in input_str:
+        input_str = "https://" + input_str
     # Follow redirects manually to find the username
     import urllib.parse
     current_url = input_str
