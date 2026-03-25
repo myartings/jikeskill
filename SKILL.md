@@ -67,11 +67,15 @@ python3 ~/.openclaw/skills/jike/scripts/jike_client.py comments <post_id>
 ### 用户
 
 ```shell
-# 查看用户资料
-python3 ~/.openclaw/skills/jike/scripts/jike_client.py user <username>
+# 查看用户资料（支持 username 或即刻链接）
+python3 ~/.openclaw/skills/jike/scripts/jike_client.py user <username 或 URL>
 
-# 查看用户发布的帖子
-python3 ~/.openclaw/skills/jike/scripts/jike_client.py user-posts <username>
+# 查看用户发布的帖子（支持 username 或即刻链接）
+python3 ~/.openclaw/skills/jike/scripts/jike_client.py user-posts <username 或 URL>
+
+# 例：通过即刻短链接查看用户
+python3 ~/.openclaw/skills/jike/scripts/jike_client.py user https://okjk.co/rAgUmv
+python3 ~/.openclaw/skills/jike/scripts/jike_client.py user-posts https://okjk.co/rAgUmv
 ```
 
 ### 互动

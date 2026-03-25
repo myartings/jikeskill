@@ -209,7 +209,54 @@ def cmd_comments(post_id):
         print()
 
 
+def resolve_username(input_str):
+    """Resolve a Jike short URL or profile URL to a username.
+
+    Supports: https://okjk.co/xxx, https://web.okjike.com/u/xxx, plain username.
+    """
+    if "://" not in input_str and "okjk.co" not in input_str:
+        return input_str
+    # Follow redirects manually to find the username
+    import urllib.parse
+    current_url = input_str
+    for _ in range(10):
+        req = urllib.request.Request(current_url, method="HEAD")
+        try:
+            opener = urllib.request.build_opener(urllib.request.HTTPRedirectHandler)
+            # Use a custom opener that doesn't follow redirects
+            class NoRedirect(urllib.request.HTTPRedirectHandler):
+                def redirect_request(self, req, fp, code, msg, headers, newurl):
+                    raise urllib.error.HTTPError(newurl, code, msg, headers, fp)
+            opener = urllib.request.build_opener(NoRedirect)
+            opener.open(req, timeout=10)
+            break  # No redirect, we're at the final URL
+        except urllib.error.HTTPError as e:
+            if 300 <= e.code < 400:
+                current_url = e.filename if hasattr(e, 'filename') else str(e)
+                # Try to extract username from URL
+                for pattern in ["/u/", "/users/"]:
+                    if pattern in current_url:
+                        rest = current_url.split(pattern, 1)[1]
+                        username = rest.split("/")[0].split("?")[0].split("#")[0]
+                        if username:
+                            return username
+                continue
+            break
+        except Exception:
+            break
+    # Check final URL
+    for pattern in ["/u/", "/users/"]:
+        if pattern in current_url:
+            rest = current_url.split(pattern, 1)[1]
+            username = rest.split("/")[0].split("?")[0].split("#")[0]
+            if username:
+                return username
+    print(f"警告: 无法从 URL 解析用户名，尝试原始输入: {input_str}")
+    return input_str
+
+
 def cmd_user(username):
+    username = resolve_username(username)
     r = api("GET", f"/api/v1/user/{username}")
     if "error" in r:
         print(f"错误: {r['error']}")
@@ -222,6 +269,7 @@ def cmd_user(username):
 
 
 def cmd_user_posts(username):
+    username = resolve_username(username)
     r = api("POST", f"/api/v1/user/{username}/posts", {})
     if "error" in r:
         print(f"错误: {r['error']}")
