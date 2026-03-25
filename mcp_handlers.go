@@ -4,8 +4,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
+	"github.com/myartings/jikeskill/jike"
 )
 
 func parseArgs(req *mcp.CallToolRequest) map[string]any {
@@ -47,6 +49,14 @@ func errorResult(err error) *mcp.CallToolResult {
 		Content: []mcp.Content{&mcp.TextContent{Text: fmt.Sprintf("Error: %s", err.Error())}},
 		IsError: true,
 	}
+}
+
+// resolveUsername resolves a username from either a plain username or a Jike URL (e.g., https://okjk.co/xxx).
+func resolveUsername(input string) (string, error) {
+	if strings.Contains(input, "://") || strings.Contains(input, "okjk.co") || strings.Contains(input, "okjike.com") {
+		return jike.ResolveShortURL(input)
+	}
+	return input, nil
 }
 
 // Auth handlers
@@ -249,7 +259,12 @@ func (a *AppServer) handleGetUserProfile(ctx context.Context, req *mcp.CallToolR
 		return errorResult(fmt.Errorf("username is required")), nil
 	}
 
-	user, err := a.service.GetUserProfile(ctx, username)
+	resolved, err := resolveUsername(username)
+	if err != nil {
+		return errorResult(fmt.Errorf("resolve URL: %w", err)), nil
+	}
+
+	user, err := a.service.GetUserProfile(ctx, resolved)
 	if err != nil {
 		return errorResult(err), nil
 	}
@@ -263,13 +278,18 @@ func (a *AppServer) handleGetUserPosts(ctx context.Context, req *mcp.CallToolReq
 		return errorResult(fmt.Errorf("username is required")), nil
 	}
 
+	resolved, err := resolveUsername(username)
+	if err != nil {
+		return errorResult(fmt.Errorf("resolve URL: %w", err)), nil
+	}
+
 	loadMoreKey := getStringArg(args, "load_more_key")
 	var lmk any
 	if loadMoreKey != "" {
 		json.Unmarshal([]byte(loadMoreKey), &lmk)
 	}
 
-	resp, err := a.service.GetUserPosts(ctx, username, lmk)
+	resp, err := a.service.GetUserPosts(ctx, resolved, lmk)
 	if err != nil {
 		return errorResult(err), nil
 	}

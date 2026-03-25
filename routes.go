@@ -2,9 +2,18 @@ package main
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/gin-gonic/gin"
+	"github.com/myartings/jikeskill/jike"
 )
+
+func resolveUsernameParam(input string) (string, error) {
+	if strings.Contains(input, "://") || strings.Contains(input, "okjk.co") || strings.Contains(input, "okjike.com") {
+		return jike.ResolveShortURL(input)
+	}
+	return input, nil
+}
 
 func (a *AppServer) setupRoutes(r *gin.Engine) {
 	// MCP endpoint (Streamable HTTP)
@@ -209,7 +218,12 @@ func (a *AppServer) apiAddComment(c *gin.Context) {
 
 func (a *AppServer) apiGetUserProfile(c *gin.Context) {
 	username := c.Param("username")
-	user, err := a.service.GetUserProfile(c.Request.Context(), username)
+	resolved, err := resolveUsernameParam(username)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	user, err := a.service.GetUserProfile(c.Request.Context(), resolved)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
@@ -219,11 +233,16 @@ func (a *AppServer) apiGetUserProfile(c *gin.Context) {
 
 func (a *AppServer) apiGetUserPosts(c *gin.Context) {
 	username := c.Param("username")
+	resolved, err := resolveUsernameParam(username)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
 	var req struct {
 		LoadMoreKey any `json:"loadMoreKey"`
 	}
 	c.ShouldBindJSON(&req)
-	resp, err := a.service.GetUserPosts(c.Request.Context(), username, req.LoadMoreKey)
+	resp, err := a.service.GetUserPosts(c.Request.Context(), resolved, req.LoadMoreKey)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

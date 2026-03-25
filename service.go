@@ -87,6 +87,11 @@ func (s *JikeService) GetUserPosts(ctx context.Context, username string, loadMor
 	return s.client.GetUserPosts(ctx, username, loadMoreKey)
 }
 
+// URL resolution
+func (s *JikeService) ResolveURL(rawURL string) (string, error) {
+	return jike.ResolveShortURL(rawURL)
+}
+
 // Interactions
 func (s *JikeService) LikePost(ctx context.Context, postID, targetType string) error {
 	return s.client.LikePost(ctx, postID, targetType)

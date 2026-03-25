@@ -122,17 +122,17 @@ func newMCPServer(app *AppServer) *mcp.Server {
 	// User tools
 	s.AddTool(&mcp.Tool{
 		Name:        "get_user_profile",
-		Description: "Get a Jike user's profile by username",
+		Description: "Get a Jike user's profile by username or Jike URL (e.g., https://okjk.co/xxx)",
 		InputSchema: inputSchema(map[string]any{
-			"username": map[string]any{"type": "string", "description": "Jike username"},
+			"username": map[string]any{"type": "string", "description": "Jike username or profile URL (e.g., https://okjk.co/xxx)"},
 		}, []string{"username"}),
 	}, app.handleGetUserProfile)
 
 	s.AddTool(&mcp.Tool{
 		Name:        "get_user_posts",
-		Description: "Get posts by a specific Jike user",
+		Description: "Get posts by a specific Jike user. Accepts username or Jike URL (e.g., https://okjk.co/xxx)",
 		InputSchema: inputSchema(map[string]any{
-			"username":      map[string]any{"type": "string", "description": "Jike username"},
+			"username":      map[string]any{"type": "string", "description": "Jike username or profile URL (e.g., https://okjk.co/xxx)"},
 			"load_more_key": map[string]any{"type": "string", "description": "Pagination key for loading more results"},
 		}, []string{"username"}),
 	}, app.handleGetUserPosts)
