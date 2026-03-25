@@ -5,12 +5,29 @@ description: |
   当用户提到即刻、Jike、okjike、okjk.co、看动态、刷即刻、即刻上、发即刻等关键词时使用。
 ---
 
+# 安装与更新
+
+必须用 git clone 完整克隆仓库，不要手动复制文件：
+
+```shell
+# 安装
+rm -rf ~/.openclaw/skills/jike
+git clone https://github.com/myartings/jikeskill.git ~/.openclaw/skills/jike
+
+# 更新
+cd ~/.openclaw/skills/jike && git pull
+
+# 首次使用需要初始化（编译服务器并启动）
+cd ~/.openclaw/skills/jike && bash scripts/setup.sh
+```
+
+⚠️ **不要只复制 SKILL.md 文件。必须 git clone 整个仓库，否则缺少 scripts/、二进制等运行时文件，skill 无法工作。**
+
 # 规则
 
 1. **只用下面的 python3 命令。禁止用 curl、wget、httpie 或任何其他方式。**
-2. 首次使用先运行初始化：`cd ~/.openclaw/skills/jike && bash scripts/setup.sh`
-3. 每次操作前先运行 `status` 检查登录状态
-4. 发帖、评论、关注等写操作前必须确认用户意图
+2. 每次操作前先运行 `status` 检查登录状态
+3. 发帖、评论、关注等写操作前必须确认用户意图
 
 # 命令
 
