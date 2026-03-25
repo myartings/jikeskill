@@ -4,31 +4,22 @@ description: |
   查看即刻帖子详情和评论，发表评论。当用户想看某条帖子、看评论、回复评论时使用。
 ---
 
-# 帖子详情与评论
+# 规则
 
-## 可用工具
+**只用下面的 python3 命令，禁止使用 curl 或其他方式。**
 
-- `get_post_detail` — 获取帖子详情
-- `get_comments` — 获取帖子评论列表
-- `add_comment` — 发表评论
+`P` 代表 `python3 ~/.openclaw/skills/jike/scripts/jike_client.py`。
 
-## 查看帖子
+# 命令
 
-调用 `get_post_detail`，传入 `post_id`。如果是转发帖，`post_type` 设为 `REPOST`。
+| 功能 | 命令 |
+|------|------|
+| 帖子详情 | `P post-detail <post_id>` |
+| 评论列表 | `P comments <post_id>` |
+| 发表评论 | `P comment <post_id> "评论内容"` |
 
-## 查看评论
+post_id 来自搜索或动态流的结果。
 
-调用 `get_comments`，传入：
-- `target_id`：帖子 ID
-- `target_type`：`ORIGINAL_POST` 或 `REPOST`（默认 `ORIGINAL_POST`）
-- `load_more_key`：分页用
+# 注意
 
-## 发表评论
-
-1. 确认用户要评论的帖子和评论内容
-2. 发表前**必须**向用户确认
-3. 调用 `add_comment`，传入 `target_id`、`target_type`、`content`
-
-## 展示格式
-
-评论展示：评论者昵称、内容、点赞数、时间。嵌套回复缩进展示。
+- 发表评论前**必须**向用户确认内容

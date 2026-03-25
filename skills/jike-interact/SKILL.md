@@ -4,27 +4,22 @@ description: |
   即刻社交互动：点赞、取消点赞、关注用户、取消关注。当用户想点赞、取赞、关注、取关时使用。
 ---
 
-# 即刻社交互动
+# 规则
 
-## 可用工具
+**只用下面的 python3 命令，禁止使用 curl 或其他方式。**
 
-- `like_post` — 点赞帖子
-- `unlike_post` — 取消点赞
-- `follow_user` — 关注用户
-- `unfollow_user` — 取消关注
+`P` 代表 `python3 ~/.openclaw/skills/jike/scripts/jike_client.py`。
 
-## 点赞/取消点赞
+# 命令
 
-调用 `like_post` 或 `unlike_post`，传入：
-- `post_id`：帖子 ID
-- `target_type`：`ORIGINAL_POST` 或 `REPOST`（默认 `ORIGINAL_POST`）
+| 功能 | 命令 |
+|------|------|
+| 点赞 | `P like <post_id>` |
+| 取消点赞 | `P unlike <post_id>` |
+| 关注 | `P follow <username>` |
+| 取关 | `P unfollow <username>` |
 
-## 关注/取消关注
+# 注意
 
-调用 `follow_user` 或 `unfollow_user`，传入 `username`。
-
-## 注意事项
-
-- 关注和取关操作前必须向用户确认
-- 点赞操作可以直接执行，无需确认
-- 操作完成后告知用户结果
+- 关注和取关操作前**必须**向用户确认
+- 点赞可以直接执行，无需确认

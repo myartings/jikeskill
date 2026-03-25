@@ -1,28 +1,35 @@
 ---
 name: jike-profile
 description: |
-  查看即刻用户资料和发布的帖子。当用户想看某人的主页、资料、发过的内容时使用。
+  查看即刻用户资料和发布的帖子。当用户想看某人的主页、资料、发过的内容、某个用户的动态时使用。
+  支持即刻链接（okjk.co/xxx）和用户名。
 ---
 
-# 查看用户资料
+# 规则
 
-## 可用工具
+**只用下面的 python3 命令，禁止使用 curl 或其他方式。**
 
-- `get_user_profile` — 获取用户资料
-- `get_user_posts` — 获取用户发布的帖子
+`P` 代表 `python3 ~/.openclaw/skills/jike/scripts/jike_client.py`。
 
-## 查看资料
+# 命令
 
-调用 `get_user_profile`，传入 `username`。
+| 功能 | 命令 |
+|------|------|
+| 查看用户资料 | `P user <username 或 okjk.co链接 或短码>` |
+| 查看用户帖子 | `P user-posts <username 或 okjk.co链接 或短码>` |
 
-展示：昵称、用户名、简介、关注数、粉丝数、获赞数。
+支持三种输入：username、即刻链接（`https://okjk.co/xxx`）、裸短码（如 `rAgUmv`），自动解析。
 
-## 查看用户的帖子
+# 示例
 
-调用 `get_user_posts`，传入 `username`，支持 `load_more_key` 分页。
+```shell
+P user rAgUmv
+P user-posts https://okjk.co/rAgUmv
+P user-posts 27BF807A-FA4D-4B01-AAFD-05FAAA674335
+```
 
-## 注意事项
+# 展示格式
 
-- 支持直接传入即刻链接（如 `https://okjk.co/xxx`），会自动解析出 username
-- 如果用户提供的是昵称而非用户名，先尝试搜索找到对应的 username
-- 展示资料时格式清晰，重要数据突出
+资料展示：昵称、用户名、简介、关注数、粉丝数、获赞数。
+
+如果用户提供的是昵称而非用户名，先用 `P search "昵称"` 搜索找到 username。
