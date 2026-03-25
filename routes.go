@@ -63,7 +63,8 @@ func (a *AppServer) apiWaitForLogin(c *gin.Context) {
 	var req struct {
 		UUID string `json:"uuid"`
 	}
-	if err := c.BindJSON(&req); err != nil {
+	c.ShouldBindJSON(&req)
+	if req.UUID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "uuid is required"})
 		return
 	}
@@ -114,7 +115,8 @@ func (a *AppServer) apiSearch(c *gin.Context) {
 		Keyword     string `json:"keyword"`
 		LoadMoreKey any    `json:"loadMoreKey"`
 	}
-	if err := c.BindJSON(&req); err != nil {
+	c.ShouldBindJSON(&req)
+	if req.Keyword == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "keyword is required"})
 		return
 	}
@@ -131,7 +133,8 @@ func (a *AppServer) apiGetPostDetail(c *gin.Context) {
 		PostID   string `json:"post_id"`
 		PostType string `json:"post_type"`
 	}
-	if err := c.BindJSON(&req); err != nil {
+	c.ShouldBindJSON(&req)
+	if req.PostID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "post_id is required"})
 		return
 	}
@@ -149,7 +152,8 @@ func (a *AppServer) apiCreatePost(c *gin.Context) {
 		TopicID     string   `json:"topic_id"`
 		PictureKeys []string `json:"picture_keys"`
 	}
-	if err := c.BindJSON(&req); err != nil {
+	c.ShouldBindJSON(&req)
+	if req.Content == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "content is required"})
 		return
 	}
@@ -201,7 +205,8 @@ func (a *AppServer) apiAddComment(c *gin.Context) {
 		TargetType string `json:"target_type"`
 		Content    string `json:"content"`
 	}
-	if err := c.BindJSON(&req); err != nil {
+	c.ShouldBindJSON(&req)
+	if req.TargetID == "" || req.Content == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "target_id and content are required"})
 		return
 	}
@@ -255,7 +260,8 @@ func (a *AppServer) apiLikePost(c *gin.Context) {
 		PostID     string `json:"post_id"`
 		TargetType string `json:"target_type"`
 	}
-	if err := c.BindJSON(&req); err != nil {
+	c.ShouldBindJSON(&req)
+	if req.PostID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "post_id is required"})
 		return
 	}
@@ -271,7 +277,8 @@ func (a *AppServer) apiUnlikePost(c *gin.Context) {
 		PostID     string `json:"post_id"`
 		TargetType string `json:"target_type"`
 	}
-	if err := c.BindJSON(&req); err != nil {
+	c.ShouldBindJSON(&req)
+	if req.PostID == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "post_id is required"})
 		return
 	}
@@ -286,7 +293,8 @@ func (a *AppServer) apiFollowUser(c *gin.Context) {
 	var req struct {
 		Username string `json:"username"`
 	}
-	if err := c.BindJSON(&req); err != nil {
+	c.ShouldBindJSON(&req)
+	if req.Username == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "username is required"})
 		return
 	}
@@ -301,7 +309,8 @@ func (a *AppServer) apiUnfollowUser(c *gin.Context) {
 	var req struct {
 		Username string `json:"username"`
 	}
-	if err := c.BindJSON(&req); err != nil {
+	c.ShouldBindJSON(&req)
+	if req.Username == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "username is required"})
 		return
 	}
