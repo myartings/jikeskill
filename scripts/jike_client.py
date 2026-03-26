@@ -101,8 +101,8 @@ def cmd_qrcode():
     qr.print_ascii(invert=True)
 
     print(f"\nUUID: {uuid}")
-    print(f"二维码图片已保存: {qr_path}")
-    print("请用即刻 App 的「扫一扫」功能扫描上方二维码")
+    print(f"IMAGE_PATH:{qr_path}")
+    print("请用即刻 App 的「扫一扫」功能扫描二维码")
     print(f"扫码后运行: python jike_client.py wait {uuid}")
 
 
