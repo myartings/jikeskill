@@ -87,6 +87,11 @@ func (s *JikeService) GetUserPosts(ctx context.Context, username string, loadMor
 	return s.client.GetUserPosts(ctx, username, loadMoreKey)
 }
 
+// Topics
+func (s *JikeService) GetTopicFeed(ctx context.Context, topicID string, loadMoreKey any) (*jike.FeedResponse, error) {
+	return s.client.GetTopicFeed(ctx, topicID, loadMoreKey)
+}
+
 // URL resolution
 func (s *JikeService) ResolveURL(rawURL string) (string, error) {
 	return jike.ResolveShortURL(rawURL)

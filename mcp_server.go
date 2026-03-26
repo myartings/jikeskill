@@ -98,6 +98,16 @@ func newMCPServer(app *AppServer) *mcp.Server {
 		}, []string{"content"}),
 	}, app.handleCreatePost)
 
+	// Topic tools
+	s.AddTool(&mcp.Tool{
+		Name:        "get_topic_feed",
+		Description: "Get posts from a Jike topic (圈子). Use search to find topic IDs first.",
+		InputSchema: inputSchema(map[string]any{
+			"topic_id":      map[string]any{"type": "string", "description": "Topic ID (from search results)"},
+			"load_more_key": map[string]any{"type": "string", "description": "Pagination key for loading more results"},
+		}, []string{"topic_id"}),
+	}, app.handleGetTopicFeed)
+
 	// Comment tools
 	s.AddTool(&mcp.Tool{
 		Name:        "get_comments",

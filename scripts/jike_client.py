@@ -182,7 +182,11 @@ def cmd_search(keyword):
         u = p.get("user", {})
         content = p.get("content", "")
         t = p.get("type", "")
-        if content:
+        if t in ("SECTION_HEADER", "SECTION_FOOTER", "USER_SECTION"):
+            continue  # skip UI elements
+        if t == "TOPIC":
+            print(f"  [圈子] {content}  ID: {p.get('id', '')}")
+        elif content:
             print(f"  [{u.get('screenName', '?')}] {content[:80]}")
             print(f"    ID: {p.get('id', '')}  👍{p.get('likeCount', 0)} 💬{p.get('commentCount', 0)}")
         elif t:
@@ -292,6 +296,23 @@ def cmd_user_posts(username):
         print()
 
 
+def cmd_topic_feed(topic_id):
+    r = api("POST", "/api/v1/topic/feed", {"topic_id": topic_id})
+    if "error" in r:
+        print(f"错误: {r['error']}")
+        return
+    data = r.get("data") or []
+    if not data:
+        print("该圈子没有帖子")
+        return
+    print(f"共 {len(data)} 条帖子:")
+    for p in data:
+        u = p.get("user", {})
+        print(f"[{u.get('screenName', '?')}] {p.get('content', '')[:100]}")
+        print(f"  ID: {p.get('id', '')}  👍{p.get('likeCount', 0)} 💬{p.get('commentCount', 0)}  {p.get('createdAt', '')}")
+        print()
+
+
 def cmd_create_post(content):
     r = api("POST", "/api/v1/post/create", {"content": content})
     if "error" in r:
@@ -360,6 +381,7 @@ def main():
         "comments": (cmd_comments, 1),
         "user": (cmd_user, 1),
         "user-posts": (cmd_user_posts, 1),
+        "topic-feed": (cmd_topic_feed, 1),
         "create-post": (cmd_create_post, 1),
         "comment": (cmd_comment, 2),
         "like": (cmd_like, 1),

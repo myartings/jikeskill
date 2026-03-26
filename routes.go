@@ -36,6 +36,7 @@ func (a *AppServer) setupRoutes(r *gin.Engine) {
 		api.POST("/comments/add", a.apiAddComment)
 		api.GET("/user/:username", a.apiGetUserProfile)
 		api.POST("/user/:username/posts", a.apiGetUserPosts)
+		api.POST("/topic/feed", a.apiGetTopicFeed)
 		api.POST("/like", a.apiLikePost)
 		api.POST("/unlike", a.apiUnlikePost)
 		api.POST("/follow", a.apiFollowUser)
@@ -103,6 +104,24 @@ func (a *AppServer) apiGetRecommendFeeds(c *gin.Context) {
 	}
 	c.ShouldBindJSON(&req)
 	resp, err := a.service.GetRecommendFeeds(c.Request.Context(), req.LoadMoreKey)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(http.StatusOK, resp)
+}
+
+func (a *AppServer) apiGetTopicFeed(c *gin.Context) {
+	var req struct {
+		TopicID     string `json:"topic_id"`
+		LoadMoreKey any    `json:"loadMoreKey"`
+	}
+	c.ShouldBindJSON(&req)
+	if req.TopicID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "topic_id is required"})
+		return
+	}
+	resp, err := a.service.GetTopicFeed(c.Request.Context(), req.TopicID, req.LoadMoreKey)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return

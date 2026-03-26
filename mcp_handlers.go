@@ -204,6 +204,26 @@ func (a *AppServer) handleCreatePost(ctx context.Context, req *mcp.CallToolReque
 
 // Comment handlers
 
+func (a *AppServer) handleGetTopicFeed(ctx context.Context, req *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	args := parseArgs(req)
+	topicID := getStringArg(args, "topic_id")
+	if topicID == "" {
+		return errorResult(fmt.Errorf("topic_id is required")), nil
+	}
+
+	loadMoreKey := getStringArg(args, "load_more_key")
+	var lmk any
+	if loadMoreKey != "" {
+		json.Unmarshal([]byte(loadMoreKey), &lmk)
+	}
+
+	resp, err := a.service.GetTopicFeed(ctx, topicID, lmk)
+	if err != nil {
+		return errorResult(err), nil
+	}
+	return textResult(toJSON(resp)), nil
+}
+
 func (a *AppServer) handleGetComments(ctx context.Context, req *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	args := parseArgs(req)
 	targetID := getStringArg(args, "target_id")
