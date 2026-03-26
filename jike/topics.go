@@ -9,7 +9,7 @@ import (
 // GetTopicFeed gets posts from a specific topic (圈子).
 func (c *Client) GetTopicFeed(ctx context.Context, topicID string, loadMoreKey any) (*FeedResponse, error) {
 	reqBody := map[string]any{
-		"id": topicID,
+		"topicId": topicID,
 	}
 	if loadMoreKey != nil {
 		reqBody["loadMoreKey"] = loadMoreKey
