@@ -104,7 +104,7 @@ def cmd_qrcode():
 
     print(f"UUID: {uuid}")
     print(f"二维码已保存: {qr_path}")
-    print(f"二维码 Base64 长度: {len(qr_base64)}")
+    print(f"QRCODE_BASE64:{qr_base64}")
     print("请用即刻 App 的「扫一扫」功能扫描二维码")
     print(f"扫码后运行: python jike_client.py wait {uuid}")
 
