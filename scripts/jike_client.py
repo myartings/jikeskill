@@ -97,15 +97,12 @@ def cmd_qrcode():
     qr_path = "/tmp/jike-qr.png"
     img.save(qr_path)
 
-    import io
-    buf = io.BytesIO()
-    img.save(buf, format="PNG")
-    qr_base64 = base64.b64encode(buf.getvalue()).decode()
+    # Print ASCII QR code to terminal so agent can display it
+    qr.print_ascii(invert=True)
 
-    print(f"UUID: {uuid}")
-    print(f"二维码已保存: {qr_path}")
-    print(f"二维码 Base64 长度: {len(qr_base64)}")
-    print("请用即刻 App 的「扫一扫」功能扫描二维码")
+    print(f"\nUUID: {uuid}")
+    print(f"二维码图片已保存: {qr_path}")
+    print("请用即刻 App 的「扫一扫」功能扫描上方二维码")
     print(f"扫码后运行: python jike_client.py wait {uuid}")
 
 

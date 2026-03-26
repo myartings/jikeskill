@@ -15,8 +15,8 @@ description: |
 1. 运行 `P status` 检查是否已登录
 2. 如已登录，告知用户当前登录的账号信息
 3. 如未登录：
-   a. 运行 `P qrcode`，记下输出的 `UUID`，二维码保存在 `/tmp/jike-qr.png`
-   b. 将二维码图片展示给用户，提示打开即刻 App 扫描
+   a. 运行 `P qrcode`，输出包含 ASCII 二维码和 `UUID`，同时二维码图片保存在 `/tmp/jike-qr.png`
+   b. 将 `/tmp/jike-qr.png` 图片发送给用户，或将终端输出的 ASCII 二维码展示给用户，提示打开即刻 App 扫描
    c. **【关键】展示二维码后，立即运行 `P wait <uuid>`。不要等用户回复。** 此命令会轮询最多 180 秒，扫码确认后自动返回。
    d. 成功后告知用户已登录
 
