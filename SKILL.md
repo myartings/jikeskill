@@ -23,6 +23,7 @@ description: |
 | 等待扫码 | `P wait <uuid>`（uuid 来自 qrcode 输出，展示二维码后立即执行） |
 | 关注动态 | `P following` |
 | 推荐动态 | `P recommend` |
+| 热门帖子 | `P hot`（推荐动态按点赞排序） |
 | 搜索 | `P search "关键词"`（结果含帖子、用户、圈子，圈子会显示 ID） |
 | 圈子帖子 | `P topic-feed <topic_id>`（topic_id 来自搜索结果） |
 | 帖子详情 | `P post-detail <post_id>` |

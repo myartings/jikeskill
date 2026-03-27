@@ -171,6 +171,33 @@ def cmd_recommend():
         print()
 
 
+def cmd_hot():
+    r = api("POST", "/api/v1/feeds/recommend", {})
+    if "error" in r:
+        print(f"错误: {r['error']}")
+        return
+    data = r.get("data") or []
+    if not data:
+        print("暂无热门内容")
+        return
+    # 按点赞数排序
+    data.sort(key=lambda p: p.get("likeCount", 0), reverse=True)
+    print(f"🔥 即刻热门 (按点赞排序):\n")
+    for i, p in enumerate(data, 1):
+        u = p.get("user", {})
+        topic = p.get("topic")
+        topic_name = ""
+        if isinstance(topic, dict):
+            topic_name = topic.get("content", "")
+        content = p.get("content", "").replace("\n", " ")[:80]
+        print(f"{i}. [{u.get('screenName', '?')}] {content}")
+        line2 = f"   👍{p.get('likeCount', 0)} 💬{p.get('commentCount', 0)}  ID: {p.get('id', '')}"
+        if topic_name:
+            line2 += f"  ##{topic_name}"
+        print(line2)
+        print()
+
+
 def cmd_search(keyword):
     r = api("POST", "/api/v1/search", {"keyword": keyword})
     if "error" in r:
@@ -376,6 +403,7 @@ def main():
         "wait": (cmd_wait, 1),
         "following": (cmd_following, 0),
         "recommend": (cmd_recommend, 0),
+        "hot": (cmd_hot, 0),
         "search": (cmd_search, 1),
         "post-detail": (cmd_post_detail, 1),
         "comments": (cmd_comments, 1),
