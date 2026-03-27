@@ -1,9 +1,15 @@
 {
   "name": "jike",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "即刻社交平台助手：浏览动态、搜索、发帖、互动",
   "author": { "name": "myartings" },
   "repository": "https://github.com/myartings/jikeskill",
   "license": "MIT",
-  "keywords": ["jike", "即刻", "okjike"]
+  "keywords": ["jike", "即刻", "okjike"],
+  "mcpServers": {
+    "jike": {
+      "command": "${CLAUDE_PLUGIN_ROOT}/jike-mcp",
+      "args": ["--port", "18080", "--tokens", "${CLAUDE_PLUGIN_DATA}/tokens.json"]
+    }
+  }
 }
