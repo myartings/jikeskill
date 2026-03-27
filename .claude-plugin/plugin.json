@@ -1,0 +1,9 @@
+{
+  "name": "jike",
+  "version": "1.0.0",
+  "description": "即刻社交平台助手：浏览动态、搜索、发帖、互动",
+  "author": { "name": "myartings" },
+  "repository": "https://github.com/myartings/jikeskill",
+  "license": "MIT",
+  "keywords": ["jike", "即刻", "okjike"]
+}
