@@ -10,7 +10,7 @@ description: |
 
 MCP 服务器必须在运行。如未运行，先执行：
 ```shell
-cd ~/.openclaw/skills/jike && bash scripts/setup.sh
+cd <SKILL_DIR> && bash scripts/setup.sh
 ```
 
 ## 登录流程

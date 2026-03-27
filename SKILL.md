@@ -8,13 +8,14 @@ description: |
 # 规则
 
 1. **只用下面的 python3 命令。禁止用 curl、wget、httpie 或任何其他方式。**
-2. 首次使用先运行初始化：`cd ~/.openclaw/skills/jike && bash scripts/setup.sh`
-3. 每次操作前先运行 `status` 检查登录状态
-4. 发帖、评论、关注等写操作前必须确认用户意图
+2. Skill 目录（`SKILL_DIR`）：`${CLAUDE_PLUGIN_ROOT}` 或 `~/.openclaw/skills/jike` 或 `~/.claude/skills/jike`，取实际存在的路径
+3. 首次使用先运行初始化：`cd <SKILL_DIR> && bash scripts/setup.sh`
+4. 每次操作前先运行 `status` 检查登录状态
+5. 发帖、评论、关注等写操作前必须确认用户意图
 
 # 命令
 
-以下是全部可用命令，`P` 代表 `python3 ~/.openclaw/skills/jike/scripts/jike_client.py`。
+以下是全部可用命令，`P` 代表 `python3 <SKILL_DIR>/scripts/jike_client.py`。
 
 | 功能 | 命令 |
 |------|------|
@@ -40,12 +41,7 @@ description: |
 # 示例
 
 ```shell
-# 查看某用户的帖子（支持即刻短链接）
-python3 ~/.openclaw/skills/jike/scripts/jike_client.py user-posts https://okjk.co/rAgUmv
-
-# 查看某用户的资料（支持裸短码）
-python3 ~/.openclaw/skills/jike/scripts/jike_client.py user rAgUmv
-
-# 搜索
-python3 ~/.openclaw/skills/jike/scripts/jike_client.py search "AI"
+P user-posts https://okjk.co/rAgUmv
+P user rAgUmv
+P search "AI"
 ```
