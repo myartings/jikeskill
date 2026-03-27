@@ -8,7 +8,7 @@ description: |
 # 规则
 
 1. **只用下面的 python3 命令。禁止用 curl、wget、httpie 或任何其他方式。**
-2. Skill 目录（`SKILL_DIR`）：`${CLAUDE_PLUGIN_ROOT}` 或 `~/.openclaw/skills/jike` 或 `~/.claude/skills/jike`，取实际存在的路径
+2. Skill 目录（`SKILL_DIR`）：`~/.claude/skills/jike` 或 `~/.openclaw/skills/jike`，取实际存在的路径
 3. 首次使用先运行初始化：`cd <SKILL_DIR> && bash scripts/setup.sh`
 4. 每次操作前先运行 `status` 检查登录状态
 5. 发帖、评论、关注等写操作前必须确认用户意图
