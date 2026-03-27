@@ -190,11 +190,8 @@ def cmd_hot():
         if isinstance(topic, dict):
             topic_name = topic.get("content", "")
         content = p.get("content", "").replace("\n", " ")[:80]
-        print(f"{i}. [{u.get('screenName', '?')}] {content}")
-        line2 = f"   👍{p.get('likeCount', 0)} 💬{p.get('commentCount', 0)}  ID: {p.get('id', '')}"
-        if topic_name:
-            line2 += f"  ##{topic_name}"
-        print(line2)
+        topic_tag = f"  ##{topic_name}" if topic_name else ""
+        print(f"{i}. [{u.get('screenName', '?')}] {content} | 👍{p.get('likeCount', 0)} 💬{p.get('commentCount', 0)} | ID: {p.get('id', '')}{topic_tag}")
         print()
 
 
