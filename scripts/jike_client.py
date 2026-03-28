@@ -94,7 +94,12 @@ def cmd_qrcode():
     qr.make(fit=True)
     img = qr.make_image(fill_color="black", back_color="white")
 
-    qr_path = "/tmp/jike-qr.png"
+    # Save to OpenClaw media dir (allowed for Telegram sending), fallback to /tmp
+    media_dir = os.path.expanduser("~/.openclaw/media")
+    if os.path.isdir(media_dir):
+        qr_path = os.path.join(media_dir, "jike-qr.png")
+    else:
+        qr_path = "/tmp/jike-qr.png"
     img.save(qr_path)
 
     import io
