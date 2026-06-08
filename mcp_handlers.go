@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
+	"time"
 
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 	"github.com/myartings/jikeskill/jike"
@@ -370,4 +371,32 @@ func (a *AppServer) handleUnfollowUser(ctx context.Context, req *mcp.CallToolReq
 		return errorResult(err), nil
 	}
 	return textResult(fmt.Sprintf("Successfully unfollowed user: %s", username)), nil
+}
+
+func (a *AppServer) handleGetTopicFeedPages(ctx context.Context, req *mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	args := parseArgs(req)
+	topicID := getStringArg(args, "topic_id")
+	if topicID == "" {
+		return errorResult(fmt.Errorf("topic_id is required")), nil
+	}
+	limit := 50
+	if v, ok := args["limit"]; ok {
+		switch n := v.(type) {
+		case float64:
+			limit = int(n)
+		}
+	}
+	var since time.Duration
+	if s := getStringArg(args, "since"); s != "" {
+		d, err := parseSince(s)
+		if err != nil {
+			return errorResult(fmt.Errorf("invalid since: %w", err)), nil
+		}
+		since = d
+	}
+	posts, err := a.service.GetTopicFeedPages(ctx, topicID, limit, since)
+	if err != nil {
+		return errorResult(err), nil
+	}
+	return textResult(toJSON(map[string]any{"data": posts, "count": len(posts)})), nil
 }

@@ -1,12 +1,28 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/myartings/jikeskill/jike"
 )
+
+// parseSince parses strings like "24h", "48h", "7d", "3d" into time.Duration.
+func parseSince(s string) (time.Duration, error) {
+	s = strings.TrimSpace(strings.ToLower(s))
+	if strings.HasSuffix(s, "d") {
+		n, err := strconv.Atoi(strings.TrimSuffix(s, "d"))
+		if err != nil {
+			return 0, fmt.Errorf("invalid since value: %s", s)
+		}
+		return time.Duration(n) * 24 * time.Hour, nil
+	}
+	return time.ParseDuration(s)
+}
 
 func resolveUsernameParam(input string) (string, error) {
 	if strings.Contains(input, "://") || strings.Contains(input, "okjk.co") || strings.Contains(input, "okjike.com") {
@@ -37,6 +53,7 @@ func (a *AppServer) setupRoutes(r *gin.Engine) {
 		api.GET("/user/:username", a.apiGetUserProfile)
 		api.POST("/user/:username/posts", a.apiGetUserPosts)
 		api.POST("/topic/feed", a.apiGetTopicFeed)
+		api.POST("/topic/feed/pages", a.apiGetTopicFeedPages)
 		api.POST("/like", a.apiLikePost)
 		api.POST("/unlike", a.apiUnlikePost)
 		api.POST("/follow", a.apiFollowUser)
@@ -338,4 +355,38 @@ func (a *AppServer) apiUnfollowUser(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "unfollowed"})
+}
+
+func (a *AppServer) apiGetTopicFeedPages(c *gin.Context) {
+	var req struct {
+		TopicID  string `json:"topic_id"`
+		Limit    int    `json:"limit"`
+		Since    string `json:"since"`
+	}
+	c.ShouldBindJSON(&req)
+	if req.TopicID == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "topic_id is required"})
+		return
+	}
+	if req.Limit == 0 {
+		req.Limit = 50
+	}
+	var since time.Duration
+	if req.Since != "" {
+		d, err := parseSince(req.Since)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "invalid since: " + err.Error()})
+			return
+		}
+		since = d
+	}
+	posts, err := a.service.GetTopicFeedPages(c.Request.Context(), req.TopicID, req.Limit, since)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	if posts == nil {
+		posts = []jike.Post{}
+	}
+	c.JSON(http.StatusOK, gin.H{"data": posts, "count": len(posts)})
 }

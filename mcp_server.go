@@ -108,6 +108,16 @@ func newMCPServer(app *AppServer) *mcp.Server {
 		}, []string{"topic_id"}),
 	}, app.handleGetTopicFeed)
 
+	s.AddTool(&mcp.Tool{
+		Name:        "get_topic_feed_pages",
+		Description: "Fetch multiple pages of posts from a Jike topic (圈子) with optional limits and time filtering. Ideal for batch data collection.",
+		InputSchema: inputSchema(map[string]any{
+			"topic_id": map[string]any{"type": "string", "description": "Topic ID"},
+			"limit":    map[string]any{"type": "integer", "description": "Max number of posts to return (default 50, 0 = no limit)"},
+			"since":    map[string]any{"type": "string", "description": "Only return posts newer than this duration, e.g. '24h', '7d'"},
+		}, []string{"topic_id"}),
+	}, app.handleGetTopicFeedPages)
+
 	// Comment tools
 	s.AddTool(&mcp.Tool{
 		Name:        "get_comments",

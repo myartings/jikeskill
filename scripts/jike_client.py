@@ -8,10 +8,12 @@ Usage:
     python jike_client.py following           # Get following feeds
     python jike_client.py recommend           # Get recommended feeds
     python jike_client.py search <keyword>    # Search posts/users/topics
-    python jike_client.py post-detail <id>    # Get post detail
-    python jike_client.py comments <id>       # Get post comments
+    python jike_client.py post-detail <id> [--json]   # Get post detail
+    python jike_client.py comments <id> [--json]      # Get post comments
     python jike_client.py user <username>     # Get user profile
     python jike_client.py user-posts <username>  # Get user's posts
+    python jike_client.py topic-feed <topic_id> [--json] [--limit N] [--since 24h] [--pages N]
+    python jike_client.py topic-digest-source <topic_id> [--since 24h] [--max-comments 5] [--jsonl]
     python jike_client.py create-post <content>  # Create a new post
     python jike_client.py comment <post_id> <content>  # Add comment
     python jike_client.py like <post_id>      # Like a post
@@ -223,18 +225,41 @@ def cmd_search(keyword):
         print()
 
 
-def cmd_post_detail(post_id):
+def cmd_post_detail(*args):
+    """post-detail <post_id> [--json]"""
+    if not args:
+        print("错误: post-detail 需要 post_id 参数")
+        sys.exit(1)
+    post_id = args[0]
+    output_json = "--json" in args
+
     r = api("POST", "/api/v1/post/detail", {"post_id": post_id})
     if "error" in r:
         print(f"错误: {r['error']}")
         return
-    pp(r)
+    if output_json:
+        pp(r)
+        return
+    # Human-readable summary
+    u = r.get("user", {})
+    print(f"[{u.get('screenName', '?')}] {r.get('content', '')}")
+    print(f"  ID: {r.get('id', '')}  👍{r.get('likeCount', 0)} 💬{r.get('commentCount', 0)}  {r.get('createdAt', '')}")
 
 
-def cmd_comments(post_id):
+def cmd_comments(*args):
+    """comments <post_id> [--json]"""
+    if not args:
+        print("错误: comments 需要 post_id 参数")
+        sys.exit(1)
+    post_id = args[0]
+    output_json = "--json" in args
+
     r = api("POST", "/api/v1/comments/list", {"target_id": post_id})
     if "error" in r:
         print(f"错误: {r['error']}")
+        return
+    if output_json:
+        pp(r)
         return
     for c in r.get("data", []):
         u = c.get("user", {})
@@ -325,21 +350,163 @@ def cmd_user_posts(username):
         print()
 
 
-def cmd_topic_feed(topic_id):
-    r = api("POST", "/api/v1/topic/feed", {"topic_id": topic_id})
+def _parse_flags(args, flags_with_values=(), flags_bool=()):
+    """Simple flag parser. Returns (positional_args, flag_values_dict)."""
+    positional = []
+    flags = {}
+    i = 0
+    while i < len(args):
+        a = args[i]
+        if a in flags_bool:
+            flags[a] = True
+        elif a in flags_with_values:
+            flags[a] = args[i + 1] if i + 1 < len(args) else ""
+            i += 1
+        elif a.startswith("--"):
+            pass  # unknown flag, ignore
+        else:
+            positional.append(a)
+        i += 1
+    return positional, flags
+
+
+def cmd_topic_feed(*args):
+    """topic-feed <topic_id> [--json] [--limit N] [--since 24h] [--pages N]
+
+    Without flags: fetches one page, human-readable output.
+    With --json / --limit / --since / --pages: uses multi-page endpoint.
+    """
+    positional, flags = _parse_flags(
+        args,
+        flags_with_values=("--limit", "--since", "--pages"),
+        flags_bool=("--json",),
+    )
+    if not positional:
+        print("错误: topic-feed 需要 topic_id 参数")
+        sys.exit(1)
+    topic_id = positional[0]
+    output_json = flags.get("--json", False)
+    limit = int(flags["--limit"]) if "--limit" in flags else 0
+    since = flags.get("--since", "")
+    pages = int(flags["--pages"]) if "--pages" in flags else 0
+
+    # Use multi-page endpoint when any pagination/filter flag is set
+    use_pages = output_json or limit or since or pages
+    if use_pages:
+        payload = {"topic_id": topic_id}
+        if limit:
+            payload["limit"] = limit
+        elif pages:
+            payload["limit"] = pages * 20  # ~20 posts per page
+        else:
+            payload["limit"] = 50
+        if since:
+            payload["since"] = since
+        r = api("POST", "/api/v1/topic/feed/pages", payload)
+        if "error" in r:
+            print(f"错误: {r['error']}")
+            return
+        if output_json:
+            pp(r)
+            return
+        data = r.get("data") or []
+        print(f"共 {len(data)} 条帖子:")
+        for p in data:
+            u = p.get("user", {})
+            print(f"[{u.get('screenName', '?')}] {p.get('content', '')[:100]}")
+            print(f"  ID: {p.get('id', '')}  👍{p.get('likeCount', 0)} 💬{p.get('commentCount', 0)}  {p.get('createdAt', '')}")
+            print()
+    else:
+        r = api("POST", "/api/v1/topic/feed", {"topic_id": topic_id})
+        if "error" in r:
+            print(f"错误: {r['error']}")
+            return
+        data = r.get("data") or []
+        if not data:
+            print("该圈子没有帖子")
+            return
+        print(f"共 {len(data)} 条帖子:")
+        for p in data:
+            u = p.get("user", {})
+            print(f"[{u.get('screenName', '?')}] {p.get('content', '')[:100]}")
+            print(f"  ID: {p.get('id', '')}  👍{p.get('likeCount', 0)} 💬{p.get('commentCount', 0)}  {p.get('createdAt', '')}")
+            print()
+
+
+def cmd_topic_digest_source(*args):
+    """topic-digest-source <topic_id> [--since 24h] [--max-comments 5] [--jsonl]
+
+    Fetches posts from a topic and top comments for each post.
+    Outputs as JSONL (one JSON object per line) by default.
+    """
+    positional, flags = _parse_flags(
+        args,
+        flags_with_values=("--since", "--max-comments"),
+        flags_bool=("--jsonl",),
+    )
+    if not positional:
+        print("错误: topic-digest-source 需要 topic_id 参数")
+        sys.exit(1)
+    topic_id = positional[0]
+    since = flags.get("--since", "24h")
+    max_comments = int(flags.get("--max-comments", 5))
+
+    # Fetch posts
+    payload = {"topic_id": topic_id, "limit": 100, "since": since}
+    r = api("POST", "/api/v1/topic/feed/pages", payload)
     if "error" in r:
-        print(f"错误: {r['error']}")
-        return
-    data = r.get("data") or []
-    if not data:
-        print("该圈子没有帖子")
-        return
-    print(f"共 {len(data)} 条帖子:")
-    for p in data:
-        u = p.get("user", {})
-        print(f"[{u.get('screenName', '?')}] {p.get('content', '')[:100]}")
-        print(f"  ID: {p.get('id', '')}  👍{p.get('likeCount', 0)} 💬{p.get('commentCount', 0)}  {p.get('createdAt', '')}")
-        print()
+        print(f"错误: {r['error']}", file=sys.stderr)
+        sys.exit(1)
+
+    posts = r.get("data") or []
+    print(f"获取到 {len(posts)} 条帖子，开始拉取评论...", file=sys.stderr)
+
+    for p in posts:
+        post_id = p.get("id", "")
+        user = p.get("user", {})
+        topic = p.get("topic") or {}
+        link_info = p.get("linkInfo") or {}
+        pictures = p.get("pictures") or []
+
+        # Extract external URLs
+        external_urls = []
+        if isinstance(link_info, dict) and link_info.get("linkUrl"):
+            external_urls.append(link_info["linkUrl"])
+
+        # Fetch comments
+        comments = []
+        if post_id and max_comments > 0:
+            cr = api("POST", "/api/v1/comments/list", {"target_id": post_id})
+            if "error" not in cr:
+                for c in (cr.get("data") or [])[:max_comments]:
+                    cu = c.get("user", {})
+                    comments.append({
+                        "comment_id": c.get("id", ""),
+                        "author_name": cu.get("screenName", ""),
+                        "text": c.get("content", ""),
+                        "like_count": c.get("likeCount", 0),
+                        "created_at": c.get("createdAt", ""),
+                    })
+
+        record = {
+            "post_id": post_id,
+            "circle_id": topic.get("id", "") if isinstance(topic, dict) else "",
+            "circle_name": topic.get("content", "") if isinstance(topic, dict) else "",
+            "author_id": user.get("id", ""),
+            "author_name": user.get("screenName", ""),
+            "created_at": p.get("createdAt", ""),
+            "text": p.get("content", ""),
+            "link": f"https://web.okjike.com/originalPost/{post_id}" if post_id else "",
+            "stats": {
+                "like_count": p.get("likeCount", 0),
+                "comment_count": p.get("commentCount", 0),
+                "repost_count": p.get("repostCount", 0),
+            },
+            "external_urls": external_urls,
+            "pictures": [pic.get("thumbnailUrl", "") for pic in pictures if isinstance(pic, dict)],
+            "comments": comments,
+        }
+        print(json.dumps(record, ensure_ascii=False))
 
 
 def cmd_create_post(content):
@@ -397,9 +564,18 @@ def main():
         sys.exit(1)
 
     cmd = sys.argv[1]
-    args = sys.argv[2:]
+    all_args = sys.argv[2:]
 
-    commands = {
+    # Commands that accept variadic args (flags + positional mixed)
+    variadic_commands = {
+        "post-detail": cmd_post_detail,
+        "comments": cmd_comments,
+        "topic-feed": cmd_topic_feed,
+        "topic-digest-source": cmd_topic_digest_source,
+    }
+
+    # Fixed-arity commands
+    fixed_commands = {
         "status": (cmd_status, 0),
         "qrcode": (cmd_qrcode, 0),
         "wait": (cmd_wait, 1),
@@ -407,11 +583,8 @@ def main():
         "recommend": (cmd_recommend, 0),
         "hot": (cmd_hot, 0),
         "search": (cmd_search, 1),
-        "post-detail": (cmd_post_detail, 1),
-        "comments": (cmd_comments, 1),
         "user": (cmd_user, 1),
         "user-posts": (cmd_user_posts, 1),
-        "topic-feed": (cmd_topic_feed, 1),
         "create-post": (cmd_create_post, 1),
         "comment": (cmd_comment, 2),
         "like": (cmd_like, 1),
@@ -420,17 +593,18 @@ def main():
         "unfollow": (cmd_unfollow, 1),
     }
 
-    if cmd not in commands:
+    if cmd in variadic_commands:
+        variadic_commands[cmd](*all_args)
+    elif cmd in fixed_commands:
+        func, nargs = fixed_commands[cmd]
+        if len(all_args) < nargs:
+            print(f"命令 '{cmd}' 需要 {nargs} 个参数")
+            sys.exit(1)
+        func(*all_args[:nargs])
+    else:
         print(f"未知命令: {cmd}")
         print(__doc__)
         sys.exit(1)
-
-    func, nargs = commands[cmd]
-    if len(args) < nargs:
-        print(f"命令 '{cmd}' 需要 {nargs} 个参数")
-        sys.exit(1)
-
-    func(*args[:nargs])
 
 
 if __name__ == "__main__":

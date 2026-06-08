@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"time"
 
 	"github.com/myartings/jikeskill/jike"
 	"github.com/myartings/jikeskill/tokens"
@@ -90,6 +91,10 @@ func (s *JikeService) GetUserPosts(ctx context.Context, username string, loadMor
 // Topics
 func (s *JikeService) GetTopicFeed(ctx context.Context, topicID string, loadMoreKey any) (*jike.FeedResponse, error) {
 	return s.client.GetTopicFeed(ctx, topicID, loadMoreKey)
+}
+
+func (s *JikeService) GetTopicFeedPages(ctx context.Context, topicID string, maxPosts int, since time.Duration) ([]jike.Post, error) {
+	return s.client.GetTopicFeedPages(ctx, topicID, maxPosts, since)
 }
 
 // URL resolution
