@@ -1,3 +1,15 @@
+# Archived repository — maintenance moved
+
+As of 2026-10-19 this repository is archived and retained for historical reference.
+
+**Maintained replacement: [https://github.com/myartings-lab/agent-skill-registry/tree/main/skills/jike](https://github.com/myartings-lab/agent-skill-registry/tree/main/skills/jike)**
+
+The maintained Jike skill, bundled MCP source and client scripts live in Agent Skill Registry. This historical standalone repository does not receive current fixes.
+
+Do not install from this repository for current use. Archiving preserves source, releases and history; it does not uninstall or stop existing deployments.
+
+---
+
 # jike-mcp
 
 即刻（Jike）MCP 服务器 + OpenClaw Skills，让 AI 助手帮你刷即刻。
